@@ -1,4 +1,4 @@
-module Md-converter
+module github.com/Zizu-oswald/MdConverter
 
 go 1.24.4
 

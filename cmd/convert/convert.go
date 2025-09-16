@@ -1,8 +1,8 @@
 package convert
 
 import (
-	"Md-converter/logger"
 	"bytes"
+	"github.com/Zizu-oswald/MdConverter/logger"
 	"log"
 
 	"github.com/SebastiaanKlippert/go-wkhtmltopdf"

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"Md-converter/cmd"
-	"Md-converter/cmd/convert"
-	"Md-converter/logger"
+	"github.com/Zizu-oswald/MdConverter/cmd"
+	"github.com/Zizu-oswald/MdConverter/cmd/convert"
+	"github.com/Zizu-oswald/MdConverter/logger"
 )
 
 func main() {
