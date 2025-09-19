@@ -2,8 +2,10 @@ package convert
 
 import (
 	"bytes"
-	"github.com/Zizu-oswald/MdConverter/logger"
 	"log"
+	"path/filepath"
+
+	"github.com/Zizu-oswald/MdConverter/logger"
 
 	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
 	"github.com/spf13/cobra"
@@ -35,7 +37,15 @@ var convertCmd = &cobra.Command{
 func Init(rootCmd *cobra.Command) {
 	rootCmd.AddCommand(convertCmd)
 
-	convertCmd.Flags().StringVarP(&outputFile, "output", "o", "markdown.pdf", "Name of file")
+	convertCmd.Flags().StringVarP(&outputFile, "output", "o", "", "Name of file")
+
+	convertCmd.PreRun = func(cmd *cobra.Command, args []string) {
+		if outputFile == "" {
+			inputFile = args[0]
+			outputFile = filepath.Base(inputFile)
+			outputFile = strings.Split(outputFile, ".")[0] + ".html"
+		}
+	}
 }
 
 func convertFunc() {
