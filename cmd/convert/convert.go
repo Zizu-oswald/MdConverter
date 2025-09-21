@@ -41,7 +41,7 @@ func Init(rootCmd *cobra.Command) {
 
 	convertCmd.Flags().StringVarP(&outputFile, "output", "o", "", "Name of file")
 
-	convertCmd.PreRun = func(cmd *cobra.Command, args []string) { // Если имя не задано то использует имя входного файла + .html
+	convertCmd.PreRun = func(cmd *cobra.Command, args []string) { // Если имя не задано то использует имя входного файла + .pdf
 		if outputFile == "" {
 			inputFile = args[0]
 			outputFile = filepath.Base(inputFile)
