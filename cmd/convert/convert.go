@@ -94,6 +94,7 @@ func toPDF() {
 	if err != nil {
 		logger.HaltOnError(err, "dont write in file")
 	}
+	defer os.Remove("pdf.html")
 
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
