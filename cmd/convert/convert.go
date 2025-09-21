@@ -2,12 +2,14 @@ package convert
 
 import (
 	"bytes"
-	"log"
+	"context"
+
 	"path/filepath"
 
 	"github.com/Zizu-oswald/MdConverter/logger"
+	"github.com/chromedp/cdproto/page"
+	"github.com/chromedp/chromedp"
 
-	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
 	"github.com/spf13/cobra"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
@@ -39,11 +41,11 @@ func Init(rootCmd *cobra.Command) {
 
 	convertCmd.Flags().StringVarP(&outputFile, "output", "o", "", "Name of file")
 
-	convertCmd.PreRun = func(cmd *cobra.Command, args []string) {
+	convertCmd.PreRun = func(cmd *cobra.Command, args []string) { // Если имя не задано то использует имя входного файла + .html
 		if outputFile == "" {
 			inputFile = args[0]
 			outputFile = filepath.Base(inputFile)
-			outputFile = strings.Split(outputFile, ".")[0] + ".html"
+			outputFile = strings.Split(outputFile, ".")[0] + ".pdf"
 		}
 	}
 }
@@ -88,32 +90,29 @@ func toHTML() []byte {
 }
 
 func toPDF() {
-	pdf, err := wkhtmltopdf.NewPDFGenerator()
-	if err != nil {
-		log.Fatal(err)
-		logger.HaltOnError(err, "dont make pdf generator")
-	}
-
-	pdf.Dpi.Set(600)
-	pdf.Orientation.Set(wkhtmltopdf.OrientationPortrait)
-	pdf.Grayscale.Set(true)
-
-	err = os.WriteFile("pdf.html", toHTML(), 0644)
+	err := os.WriteFile("pdf.html", toHTML(), 0644)
 	if err != nil {
 		logger.HaltOnError(err, "dont write in file")
 	}
-	defer os.Remove("pdf.html")
 
-	page := wkhtmltopdf.NewPage("pdf.html")
+	ctx, cancel := chromedp.NewContext(context.Background())
+	defer cancel()
 
-	pdf.AddPage(page)
-	err = pdf.Create()
+	var buf []byte
+	url, _ := filepath.Abs("pdf.html")
+	url = "file://" + url
+	err = chromedp.Run(ctx,
+		chromedp.Navigate(url),
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			var err error
+			buf, _, err = page.PrintToPDF().Do(ctx)
+			if err != nil {
+				return err
+			}
+			return os.WriteFile(outputFile, buf, 0644)
+		}),
+	)
 	if err != nil {
-		logger.HaltOnError(err, "dont create pdf buffer")
-	}
-
-	err = pdf.WriteFile(outputFile)
-	if err != nil {
-		logger.HaltOnError(err, "dont write in pdf file")
+		logger.Warn(err, "error in chromedp.Run")
 	}
 }
